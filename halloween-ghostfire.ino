@@ -76,26 +76,48 @@ int buzzerPin = 7;
 
 // notes in the melody:
 int melody[] = {
-    NOTE_G4, NOTE_G4,
-    NOTE_AS4, NOTE_G4, NOTE_AS4, 0, NOTE_G4, NOTE_F4,
-    NOTE_G4, NOTE_G4, NOTE_G4, 0,
-    NOTE_G4, NOTE_G4, NOTE_G4, 0, NOTE_D5,
-    NOTE_D5, NOTE_D5, 0, 0, NOTE_G4, NOTE_G4,
-    NOTE_AS4, NOTE_G4, NOTE_AS4, 0, NOTE_G4, NOTE_F4,
-    NOTE_G4, NOTE_G4, NOTE_G4, 0,
-    NOTE_G4, NOTE_G4, NOTE_G4, 0, NOTE_D5,
-    NOTE_D5, NOTE_D5, 0, 0};
+  NOTE_B5, NOTE_B4, NOTE_D5, NOTE_DS5, NOTE_F5S, NOTE_A5, 0, NOTE_B4, NOTE_GS5, 0, NOTE_B4,
+  NOTE_B5, NOTE_B4, NOTE_D5, NOTE_DS5, NOTE_F5S, NOTE_A5, 0, NOTE_B4, NOTE_GS5, 0, NOTE_B4,
+  NOTE_B5, NOTE_B4, NOTE_D5, NOTE_DS5, NOTE_F5S, NOTE_A5, 0, NOTE_B4, NOTE_GS5, 0, NOTE_B4,
+  NOTE_B5, NOTE_B4, NOTE_D5, NOTE_DS5, NOTE_F5S, NOTE_A5, 0, NOTE_B4, NOTE_GS5, 0, NOTE_B4, //1st
+  NOTE_B4, NOTE_B4, NOTE_DS5, NOTE_B4, NOTE_CS5, NOTE_A4, 0, 0,
+  NOTE_B4, NOTE_B4, NOTE_B4, NOTE_B4, NOTE_A4, NOTE_B4, 0
+  NOTE_B4, NOTE_B4, NOTE_DS5, NOTE_B4, NOTE_CS5, NOTE_A4, 0, 0,
+  NOTE_B4, NOTE_B4, NOTE_B4, NOTE_B4, NOTE_A4, NOTE_CS5, NOTE_B4, 0, 0, //2nd
+  NOTE_D5, NOTE_B4, 0, 0, 0, 0, NOTE_D5, NOTE_B4, 0, 0, 0, NOTE_D5, NOTE_B4, 0, 0, 0, NOTE_D5, NOTE_B4, 0, 0, 0, 0,
+  NOTE_D5, NOTE_B4, 0, 0, NOTE_A4, NOTE_AS4, NOTE_B4, 0,
+  NOTE_D5, NOTE_B4, 0, 0, 0, 0, NOTE_D5, NOTE_B4, 0, 0, 0, NOTE_D5, NOTE_B4, 0, 0, 0, NOTE_D5, NOTE_B4, 0, 0, 0, 0,
+  NOTE_D5, NOTE_B4, 0, 0, NOTE_A4, NOTE_AS4, NOTE_B4, 0,
+  NOTE_D5, NOTE_B4, 0, 0, 0, 0, NOTE_D5, NOTE_B4, 0, 0, 0, NOTE_D5, NOTE_B4, 0, 0, 0, NOTE_D5, NOTE_B4, 0, 0, 0, 0,
+  NOTE_D5, NOTE_B4, 0, 0, NOTE_A4, NOTE_AS4, NOTE_B4, 0,
+};
+
+//translate
+//1 = 1
+//2 = 2
+//3 = 4
+//4 = 8
+//5 = 16
+//6 = 32
+//7 = 64
 
 // note durations: 4 = quarter note, 8 = eighth note, etc.:
 int noteDurations[] = {
-    8, 8,
-    8, 8, 4, 4, 8, 8,
-    8, 8, 4, 2,
-    8, 8, 4, 4, 4,
-    8, 8, 4, 4, 8, 8, 8, 8, 8, 4, 8, 8,
-    8, 8, 4, 2,
-    8, 8, 4, 4, 4,
-    8, 8, 4, 2};
+  8, 8, 16, 8, 8, 16, 16, 8, 16, 16, 8,
+  8, 8, 16, 8, 8, 16, 16, 8, 16, 16, 8,
+  8, 8, 16, 8, 8, 16, 16, 8, 16, 16, 8,
+  8, 8, 16, 8, 8, 16, 16, 8, 16, 16, 8, //1st
+  16, 8, 8, 8, 8, 8, 4,
+  16, 16, 16, 16, 8, 8, 2,
+  16, 8, 8, 8, 8, 8, 4,
+  16, 16, 16, 16, 8, 8, 4, 8, //2nd
+  8, 64, 64, 32, 32, 32, 8, 64, 64, 32, 16, 8, 64, 64, 32, 16, 8, 64, 64, 32, 32, 32,
+  8, 32, 32, 16, 16, 16, 16, 16,
+  8, 64, 64, 32, 32, 32, 8, 64, 64, 32, 16, 8, 64, 64, 32, 16, 8, 64, 64, 32, 32, 32,
+  8, 32, 32, 16, 16, 16, 16, 16,
+  8, 64, 64, 32, 32, 32, 8, 64, 64, 32, 16, 8, 64, 64, 32, 16, 8, 64, 64, 32, 32, 32,
+  8, 32, 32, 16, 16, 16, 16, 16,
+};
 
 void setup()
 {
@@ -395,7 +417,7 @@ void ghostshot(int g)
 void busters()
 {
   // iterate over the notes of the melody:
-  for (int thisNote = 0; thisNote < 42; thisNote++)
+  for (int thisNote = 0; thisNote < sizeof(noteDuration)/sizeof(noteDuration[0]); thisNote++)
   {
 
     // to calculate the note duration, take one second divided by the note type.
