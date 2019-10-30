@@ -20,10 +20,19 @@ StensTimer *stensTimer;
 
 #include "FastLED.h"
 // Number of RGB LEDs in the strand
-#define NUM_LEDS 50
+#define NUM_LEDS 45
 
 // Define the array of leds
 CRGB pixels[NUM_LEDS];
+CRGB pixelsA[NUM_LEDS];
+CRGB pixelsB[NUM_LEDS];
+CRGB pixelsC[NUM_LEDS];
+
+int pixelsBottom[] = {34, 36, 1, 37, 38, 3, 39, 40, 5, 41, 42, 7, 43, 10}; //Blue
+int pixelsRight[] = {11, 12, 13, 14, 15, 16, 17};                          //Blue
+int pixelsTop[] = {18, 19, 20, 21, 22, 23, 24, 25, 26};                    //Blue
+int pixelsLeft[] = {27, 28, 29, 30, 31, 32, 33};                           //Blue
+
 // Arduino pin used for Data
 #define DATA_PIN 6
 
@@ -65,6 +74,29 @@ int gameRound;
 
 int buzzerPin = 7;
 
+// notes in the melody:
+int melody[] = {
+    NOTE_G4, NOTE_G4,
+    NOTE_AS4, NOTE_G4, NOTE_AS4, 0, NOTE_G4, NOTE_F4,
+    NOTE_G4, NOTE_G4, NOTE_G4, 0,
+    NOTE_G4, NOTE_G4, NOTE_G4, 0, NOTE_D5,
+    NOTE_D5, NOTE_D5, 0, 0, NOTE_G4, NOTE_G4,
+    NOTE_AS4, NOTE_G4, NOTE_AS4, 0, NOTE_G4, NOTE_F4,
+    NOTE_G4, NOTE_G4, NOTE_G4, 0,
+    NOTE_G4, NOTE_G4, NOTE_G4, 0, NOTE_D5,
+    NOTE_D5, NOTE_D5, 0, 0};
+
+// note durations: 4 = quarter note, 8 = eighth note, etc.:
+int noteDurations[] = {
+    8, 8,
+    8, 8, 4, 4, 8, 8,
+    8, 8, 4, 2,
+    8, 8, 4, 4, 4,
+    8, 8, 4, 4, 8, 8, 8, 8, 8, 4, 8, 8,
+    8, 8, 4, 2,
+    8, 8, 4, 4, 4,
+    8, 8, 4, 2};
+
 void setup()
 {
   Serial.begin(115200);
@@ -97,6 +129,43 @@ void setup()
   buttons[5].init(13, HIGH, 5);
 
   pinMode(buzzerPin, OUTPUT);
+
+  for (byte i = 0; i < (sizeof(pixelsBottom) / sizeof(pixelsBottom[0])); i++)
+  {
+    pixels[pixelsBottom[i]] = CRGB::Blue;
+    FastLED.show();
+    delay(100);
+    pixels[pixelsBottom[i]] = CRGB::Black;
+    FastLED.show();
+  }
+
+  for (byte i = 0; i < (sizeof(pixelsRight) / sizeof(pixelsRight[0])); i++)
+  {
+    pixels[pixelsRight[i]] = CRGB::Blue;
+    FastLED.show();
+    delay(100);
+    pixels[pixelsRight[i]] = CRGB::Black;
+    FastLED.show();
+  }
+
+  for (byte i = 0; i < (sizeof(pixelsTop) / sizeof(pixelsTop[0])); i++)
+  {
+    pixels[pixelsTop[i]] = CRGB::Blue;
+    FastLED.show();
+    delay(100);
+    pixels[pixelsTop[i]] = CRGB::Black;
+    FastLED.show();
+  }
+
+  for (byte i = 0; i < (sizeof(pixelsLeft) / sizeof(pixelsLeft[0])); i++)
+  {
+    pixels[pixelsLeft[i]] = CRGB::Blue;
+    FastLED.show();
+    delay(100);
+    pixels[pixelsLeft[i]] = CRGB::Black;
+    FastLED.show();
+  }
+
   newGame();
 }
 
@@ -286,6 +355,7 @@ void endGame()
   FastLED.show();
 
   Serial.println("E");
+  //  busters();
   return;
 }
 
@@ -320,4 +390,24 @@ void ghostshot(int g)
 
   endRound();
   return;
+}
+
+void busters()
+{
+  // iterate over the notes of the melody:
+  for (int thisNote = 0; thisNote < 42; thisNote++)
+  {
+
+    // to calculate the note duration, take one second divided by the note type.
+    //e.g. quarter note = 1000 / 4, eighth note = 1000/8, etc.
+    int noteDuration = 1500 / noteDurations[thisNote];
+    tone(buzzerPin, melody[thisNote], noteDuration);
+
+    // to distinguish the notes, set a minimum time between them.
+    // the note's duration + 30% seems to work well:
+    int pauseBetweenNotes = noteDuration * 1.30;
+    delay(pauseBetweenNotes);
+    // stop the tone playing:
+    noTone(buzzerPin);
+  }
 }
