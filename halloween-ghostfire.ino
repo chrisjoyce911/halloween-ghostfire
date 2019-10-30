@@ -5,6 +5,7 @@
 //
 // The game ends when you run out of time to shoot the Ghosts
 
+#include "pitches.h"
 #include "StensTimer.h"
 /* stensTimer variable to be used later in the code */
 StensTimer *stensTimer;
@@ -15,7 +16,7 @@ StensTimer *stensTimer;
 
 #define ROUND_TIME 5000
 #define GAME_TIME 60000
-#define LAST_ROUND 10
+#define LAST_ROUND 20
 
 #include "FastLED.h"
 // Number of RGB LEDs in the strand
@@ -53,14 +54,16 @@ Ghost GHOSTS[NUM_GHOSTS] = {
     {12, 8, false, true},
 };
 
-AceButton buttons[12];
+AceButton buttons[20];
 
 void buttonEvent(AceButton *, uint8_t, uint8_t);
-#define START_PIN 7
-#define START_BUTTON 10
+#define START_PIN 13
+#define START_BUTTON 15
 
 // the round of the game you are in
 int gameRound;
+
+int buzzerPin = 7;
 
 void setup()
 {
@@ -69,10 +72,6 @@ void setup()
     ; // wait for serial attach
 
   FastLED.addLeds<WS2812, DATA_PIN, RGB>(pixels, NUM_LEDS);
-
-  // Setup start button
-  pinMode(START_PIN, INPUT_PULLUP);
-  buttons[START_BUTTON].init(START_PIN, HIGH, START_BUTTON);
 
   // Set default order
   for (uint8_t i = 0; i < NUM_GHOSTS; i++)
@@ -93,6 +92,11 @@ void setup()
   /* Tell StensTimer which callback function to use */
   stensTimer->setStaticCallback(timerCallback);
 
+  // Setup start button
+  pinMode(13, INPUT_PULLUP);
+  buttons[5].init(13, HIGH, 5);
+
+  pinMode(buzzerPin, OUTPUT);
   newGame();
 }
 
@@ -184,7 +188,7 @@ void newGame()
 // Start a new round if the game, picks poltergeist and increments round
 void newRound()
 {
-  Serial.println("R");
+  Serial.println("New Round");
   // Increment round
   gameRound++;
 
@@ -192,16 +196,39 @@ void newRound()
   uint8_t g = 0;
   for (uint8_t i = 0; i < NUM_GHOSTS; i++)
   {
+    Serial.print("Check ghost  :");
+    Serial.println(i);
     if (GHOSTS[i].isalive)
     {
+      Serial.print("Ghost is alive :");
+      Serial.println(i);
       g++;
     }
   }
+  Serial.print("Found alive :");
+  Serial.println(g);
+
   randomSeed(analogRead(A0));
   uint8_t p = random(0, g);
+  Serial.print("Pick as poltergeist :");
+  Serial.println(p);
+
   for (uint8_t i = 0; i < NUM_GHOSTS; i++)
   {
-    if ((GHOSTS[i].isalive) && (i == p))
+
+    if (!GHOSTS[i].isalive)
+    {
+      continue;
+    }
+
+    if (GHOSTS[i].isalive)
+    {
+      p = --p;
+      GHOSTS[i].poltergeist = false;
+      pixels[GHOSTS[i].pixel] = CRGB::Green;
+    }
+
+    if (p == 0)
     {
       GHOSTS[i].poltergeist = true;
       pixels[GHOSTS[i].pixel] = CRGB::Red;
@@ -210,12 +237,8 @@ void newRound()
       Serial.print(" button :");
       Serial.println(GHOSTS[i].buttonPin);
     }
-    else if (GHOSTS[i].isalive)
-    {
-      GHOSTS[i].poltergeist = false;
-      pixels[GHOSTS[i].pixel] = CRGB::Green;
-    }
   }
+
   FastLED.show();
   // start the round timer
   stensTimer->setTimer(ROUND_TIMER, ROUND_TIME);
@@ -285,6 +308,15 @@ void ghostshot(int g)
   {
     Serial.println("Orb");
   }
+
+  for (int i = 1000; i > 200; i--)
+  {
+    tone(buzzerPin, i);
+  }
+  noTone(buzzerPin);
+
+  noTone(buzzerPin);
+
   endRound();
   return;
 }
