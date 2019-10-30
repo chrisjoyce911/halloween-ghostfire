@@ -39,7 +39,7 @@ elseif (ghostshot(id)) then (yes)
 elseif (endRound()) then (yes)
   #Red:ROUND_TIMER;
   if (last round) then (yes)
-    #Orange:Game End;
+    #Orange:endGame();
   else (no)
     #Orange:newRound();
   endif

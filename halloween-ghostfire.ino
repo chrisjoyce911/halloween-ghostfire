@@ -13,9 +13,9 @@ StensTimer *stensTimer;
 #define ROUND_TIMER 1
 #define GAME_TIMER 2
 
-#define ROUND_TIME 10000
-#define GAME_TIME 50000
-#define LAST_ROUND 3
+#define ROUND_TIME 5000
+#define GAME_TIME 60000
+#define LAST_ROUND 10
 
 #include "FastLED.h"
 // Number of RGB LEDs in the strand
@@ -30,7 +30,7 @@ CRGB pixels[NUM_LEDS];
 using namespace ace_button;
 
 // The number of ghosts in the game
-const uint16_t NUM_GHOSTS = 6;
+const uint16_t NUM_GHOSTS = 5;
 
 // Helper struct that keeps track of the button, pixel and status.
 struct Ghost
@@ -51,7 +51,6 @@ Ghost GHOSTS[NUM_GHOSTS] = {
     {10, 4, false, true},
     {11, 6, false, true},
     {12, 8, false, true},
-    {13, 10, false, true},
 };
 
 AceButton buttons[12];
@@ -134,11 +133,16 @@ void buttonCallback(AceButton *button, uint8_t eventType, uint8_t buttonState)
   // Get the button
   uint8_t id = button->getId();
 
+  Serial.print("Button : ");
+  Serial.println(id);
+
   switch (eventType)
   {
   case AceButton::kEventReleased:
     if (id == START_BUTTON)
     {
+      Serial.println("New Gane");
+
       newGame();
     }
     else
@@ -200,7 +204,7 @@ void newRound()
     if ((GHOSTS[i].isalive) && (i == p))
     {
       GHOSTS[i].poltergeist = true;
-      pixels[GHOSTS[i].pixel] = CRGB::Black;
+      pixels[GHOSTS[i].pixel] = CRGB::Red;
       Serial.print("poltergeist :");
       Serial.println(i);
       Serial.print(" button :");
@@ -265,6 +269,7 @@ void endGame()
 void ghostshot(int g)
 {
   // print the button that triggered the event
+  Serial.print("ghostshot : ");
   Serial.println(g);
 
   if (GHOSTS[g].poltergeist)
