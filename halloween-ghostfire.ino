@@ -223,7 +223,6 @@ void newRound()
 
     if (GHOSTS[i].isalive)
     {
-      p = --p;
       GHOSTS[i].poltergeist = false;
       pixels[GHOSTS[i].pixel] = CRGB::Green;
     }
@@ -237,6 +236,8 @@ void newRound()
       Serial.print(" button :");
       Serial.println(GHOSTS[i].buttonPin);
     }
+
+    p = --p;
   }
 
   FastLED.show();
