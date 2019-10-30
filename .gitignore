@@ -10,3 +10,6 @@
 
 # Output of the go coverage tool, specifically when used with LiteIDE
 *.out
+.vscode/arduino.json
+.vscode/c_cpp_properties.json
+.vscode/settings.json
