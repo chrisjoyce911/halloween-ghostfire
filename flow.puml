@@ -1,23 +1,34 @@
-@startuml Game flow
+@startuml ghostfire
+
+
 
 start
-if (buttonCallback()) then (yes)
-  if (ghost button) then (yes)
-    #Orange:ghostshot(id);
-  else (no)
-    #Orange:newGame();
-  endif
 
-elseif (timerCallback) then (yes)
+if (callback type) then (no)
+  #Orange:timer;
   if (ROUND_TIMER) then (yes)
     #Orange:endRound();
   else (no)
     #Orange:endGame();
   endif
+  else (yes)
+  #Orange:button;
+  if (ghost button) then (yes)
+ #Orange:resetGhost(id);
+  else (no)
+  #Orange:newGame();
+  endif
+endif
+stop
 
-elseif (newGame()) then (yes)
+
+start
+if (newGame()) then (yes)
   :set ghosts alive;
   :re-set gameRound;
+  :set gameRunning true;
+  :set gameScore 0;
+  :new game pixles;
   #Green:GAME_TIMER;
   #Orange:newRound();
 
@@ -28,13 +39,29 @@ elseif (newRound()) then (yes)
   :pixels on;
   #Green:ROUND_TIMER;
 
-elseif (ghostshot(id)) then (yes)
-    if (Was poltergeist) then (yes)
-    :set poltergeist ghost;
+elseif (endRound()) then (yes)
+  #Red:ROUND_TIMER;
+  :Ghosts pixles off;
+  if (last round) then (yes)
+    #Orange:endGame();
   else (no)
-
+    #Orange:newRound();
   endif
-#Orange:endRound();
+
+elseif (ghostShot(id)) then (yes)
+    if (game inprogress) then (yes)
+      if (Was poltergeist) then (yes)
+        :set poltergeist ghost;
+        :set gameScore ++;
+      endif
+    #Orange:endRound();
+    else (no)
+      #Orange:ghostReset(id);
+    endif
+
+elseif (ghostReset(id)) then (yes)
+    :set orb ghosts;
+    :pixel readyon;
 
 elseif (endRound()) then (yes)
   #Red:ROUND_TIMER;
@@ -48,10 +75,16 @@ elseif (endRound()) then (yes)
 elseif (endGame()) then (yes)
   #Red:ROUND_TIMER;
   #Red:GAME_TIMER;
+  :set gameRunning false;
   :End Game colour;
 
-else
-  :wait for next event;
+elseif (finalScore()) then (yes)
+  if (winning score) then (yes)
+    :winning pixles;
+  else (no)
+    :no pixles;
+  endif
+
 endif
 stop
 @enduml

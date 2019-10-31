@@ -18,6 +18,8 @@ StensTimer *stensTimer;
 #define GAME_TIME 60000
 #define LAST_ROUND 20
 
+#define TO_WIN 5
+
 #include "FastLED.h"
 // Number of RGB LEDs in the strand
 #define NUM_LEDS 45
@@ -71,26 +73,26 @@ void buttonEvent(AceButton *, uint8_t, uint8_t);
 
 // the round of the game you are in
 int gameRound;
-
+bool gameRunning = true;
+int gameScore = 0;
 int buzzerPin = 7;
 
 // notes in the melody:
 int melody[] = {
-  NOTE_B5, NOTE_B4, NOTE_D5, NOTE_DS5, NOTE_F5S, NOTE_A5, 0, NOTE_B4, NOTE_GS5, 0, NOTE_B4,
-  NOTE_B5, NOTE_B4, NOTE_D5, NOTE_DS5, NOTE_F5S, NOTE_A5, 0, NOTE_B4, NOTE_GS5, 0, NOTE_B4,
-  NOTE_B5, NOTE_B4, NOTE_D5, NOTE_DS5, NOTE_F5S, NOTE_A5, 0, NOTE_B4, NOTE_GS5, 0, NOTE_B4,
-  NOTE_B5, NOTE_B4, NOTE_D5, NOTE_DS5, NOTE_F5S, NOTE_A5, 0, NOTE_B4, NOTE_GS5, 0, NOTE_B4, //1st
-  NOTE_B4, NOTE_B4, NOTE_DS5, NOTE_B4, NOTE_CS5, NOTE_A4, 0, 0,
-  NOTE_B4, NOTE_B4, NOTE_B4, NOTE_B4, NOTE_A4, NOTE_B4, 0
-  NOTE_B4, NOTE_B4, NOTE_DS5, NOTE_B4, NOTE_CS5, NOTE_A4, 0, 0,
-  NOTE_B4, NOTE_B4, NOTE_B4, NOTE_B4, NOTE_A4, NOTE_CS5, NOTE_B4, 0, 0, //2nd
-  NOTE_D5, NOTE_B4, 0, 0, 0, 0, NOTE_D5, NOTE_B4, 0, 0, 0, NOTE_D5, NOTE_B4, 0, 0, 0, NOTE_D5, NOTE_B4, 0, 0, 0, 0,
-  NOTE_D5, NOTE_B4, 0, 0, NOTE_A4, NOTE_AS4, NOTE_B4, 0,
-  NOTE_D5, NOTE_B4, 0, 0, 0, 0, NOTE_D5, NOTE_B4, 0, 0, 0, NOTE_D5, NOTE_B4, 0, 0, 0, NOTE_D5, NOTE_B4, 0, 0, 0, 0,
-  NOTE_D5, NOTE_B4, 0, 0, NOTE_A4, NOTE_AS4, NOTE_B4, 0,
-  NOTE_D5, NOTE_B4, 0, 0, 0, 0, NOTE_D5, NOTE_B4, 0, 0, 0, NOTE_D5, NOTE_B4, 0, 0, 0, NOTE_D5, NOTE_B4, 0, 0, 0, 0,
-  NOTE_D5, NOTE_B4, 0, 0, NOTE_A4, NOTE_AS4, NOTE_B4, 0,
-};
+    NOTE_B5, NOTE_B4, NOTE_D5, NOTE_DS5, NOTE_F5S, NOTE_A5, 0, NOTE_B4, NOTE_GS5, 0, NOTE_B4,
+    NOTE_B5, NOTE_B4, NOTE_D5, NOTE_DS5, NOTE_F5S, NOTE_A5, 0, NOTE_B4, NOTE_GS5, 0, NOTE_B4,
+    NOTE_B5, NOTE_B4, NOTE_D5, NOTE_DS5, NOTE_F5S, NOTE_A5, 0, NOTE_B4, NOTE_GS5, 0, NOTE_B4,
+    NOTE_B5, NOTE_B4, NOTE_D5, NOTE_DS5, NOTE_F5S, NOTE_A5, 0, NOTE_B4, NOTE_GS5, 0, NOTE_B4, //1st
+    NOTE_B4, NOTE_B4, NOTE_DS5, NOTE_B4, NOTE_CS5, NOTE_A4, 0, 0,
+    NOTE_B4, NOTE_B4, NOTE_B4, NOTE_B4, NOTE_A4, NOTE_B4, 0,
+    NOTE_B4, NOTE_B4, NOTE_DS5, NOTE_B4, NOTE_CS5, NOTE_A4, 0, 0,
+    NOTE_B4, NOTE_B4, NOTE_B4, NOTE_B4, NOTE_A4, NOTE_CS5, NOTE_B4, 0, 0, //2nd
+    NOTE_D5, NOTE_B4, 0, 0, 0, 0, NOTE_D5, NOTE_B4, 0, 0, 0, NOTE_D5, NOTE_B4, 0, 0, 0, NOTE_D5, NOTE_B4, 0, 0, 0, 0,
+    NOTE_D5, NOTE_B4, 0, 0, NOTE_A4, NOTE_AS4, NOTE_B4, 0,
+    NOTE_D5, NOTE_B4, 0, 0, 0, 0, NOTE_D5, NOTE_B4, 0, 0, 0, NOTE_D5, NOTE_B4, 0, 0, 0, NOTE_D5, NOTE_B4, 0, 0, 0, 0,
+    NOTE_D5, NOTE_B4, 0, 0, NOTE_A4, NOTE_AS4, NOTE_B4, 0,
+    NOTE_D5, NOTE_B4, 0, 0, 0, 0, NOTE_D5, NOTE_B4, 0, 0, 0, NOTE_D5, NOTE_B4, 0, 0, 0, NOTE_D5, NOTE_B4, 0, 0, 0, 0,
+    NOTE_D5, NOTE_B4, 0, 0, NOTE_A4, NOTE_AS4, NOTE_B4, 0};
 
 //translate
 //1 = 1
@@ -103,21 +105,20 @@ int melody[] = {
 
 // note durations: 4 = quarter note, 8 = eighth note, etc.:
 int noteDurations[] = {
-  8, 8, 16, 8, 8, 16, 16, 8, 16, 16, 8,
-  8, 8, 16, 8, 8, 16, 16, 8, 16, 16, 8,
-  8, 8, 16, 8, 8, 16, 16, 8, 16, 16, 8,
-  8, 8, 16, 8, 8, 16, 16, 8, 16, 16, 8, //1st
-  16, 8, 8, 8, 8, 8, 4,
-  16, 16, 16, 16, 8, 8, 2,
-  16, 8, 8, 8, 8, 8, 4,
-  16, 16, 16, 16, 8, 8, 4, 8, //2nd
-  8, 64, 64, 32, 32, 32, 8, 64, 64, 32, 16, 8, 64, 64, 32, 16, 8, 64, 64, 32, 32, 32,
-  8, 32, 32, 16, 16, 16, 16, 16,
-  8, 64, 64, 32, 32, 32, 8, 64, 64, 32, 16, 8, 64, 64, 32, 16, 8, 64, 64, 32, 32, 32,
-  8, 32, 32, 16, 16, 16, 16, 16,
-  8, 64, 64, 32, 32, 32, 8, 64, 64, 32, 16, 8, 64, 64, 32, 16, 8, 64, 64, 32, 32, 32,
-  8, 32, 32, 16, 16, 16, 16, 16,
-};
+    8, 8, 16, 8, 8, 16, 16, 8, 16, 16, 8,
+    8, 8, 16, 8, 8, 16, 16, 8, 16, 16, 8,
+    8, 8, 16, 8, 8, 16, 16, 8, 16, 16, 8,
+    8, 8, 16, 8, 8, 16, 16, 8, 16, 16, 8, //1st
+    16, 8, 8, 8, 8, 8, 4,
+    16, 16, 16, 16, 8, 8, 2,
+    16, 8, 8, 8, 8, 8, 4,
+    16, 16, 16, 16, 8, 8, 4, 8, //2nd
+    8, 64, 64, 32, 32, 32, 8, 64, 64, 32, 16, 8, 64, 64, 32, 16, 8, 64, 64, 32, 32, 32,
+    8, 32, 32, 16, 16, 16, 16, 16,
+    8, 64, 64, 32, 32, 32, 8, 64, 64, 32, 16, 8, 64, 64, 32, 16, 8, 64, 64, 32, 32, 32,
+    8, 32, 32, 16, 16, 16, 16, 16,
+    8, 64, 64, 32, 32, 32, 8, 64, 64, 32, 16, 8, 64, 64, 32, 16, 8, 64, 64, 32, 32, 32,
+    8, 32, 32, 16, 16, 16, 16, 16};
 
 void setup()
 {
@@ -151,42 +152,6 @@ void setup()
   buttons[5].init(13, HIGH, 5);
 
   pinMode(buzzerPin, OUTPUT);
-
-  for (byte i = 0; i < (sizeof(pixelsBottom) / sizeof(pixelsBottom[0])); i++)
-  {
-    pixels[pixelsBottom[i]] = CRGB::Blue;
-    FastLED.show();
-    delay(100);
-    pixels[pixelsBottom[i]] = CRGB::Black;
-    FastLED.show();
-  }
-
-  for (byte i = 0; i < (sizeof(pixelsRight) / sizeof(pixelsRight[0])); i++)
-  {
-    pixels[pixelsRight[i]] = CRGB::Blue;
-    FastLED.show();
-    delay(100);
-    pixels[pixelsRight[i]] = CRGB::Black;
-    FastLED.show();
-  }
-
-  for (byte i = 0; i < (sizeof(pixelsTop) / sizeof(pixelsTop[0])); i++)
-  {
-    pixels[pixelsTop[i]] = CRGB::Blue;
-    FastLED.show();
-    delay(100);
-    pixels[pixelsTop[i]] = CRGB::Black;
-    FastLED.show();
-  }
-
-  for (byte i = 0; i < (sizeof(pixelsLeft) / sizeof(pixelsLeft[0])); i++)
-  {
-    pixels[pixelsLeft[i]] = CRGB::Blue;
-    FastLED.show();
-    delay(100);
-    pixels[pixelsLeft[i]] = CRGB::Black;
-    FastLED.show();
-  }
 
   newGame();
 }
@@ -242,7 +207,7 @@ void buttonCallback(AceButton *button, uint8_t eventType, uint8_t buttonState)
     }
     else
     {
-      ghostshot(id);
+      ghostShot(id);
     }
     break;
   }
@@ -271,6 +236,24 @@ void newGame()
     GHOSTS[i].poltergeist = false;
   }
   gameRound = 0;
+  gameRunning = true;
+  gameScore = 0;
+
+  fill_solid(pixels, NUM_LEDS, CRGB::Red);
+  FastLED.show();
+  delay(3000);
+
+  fill_solid(pixels, NUM_LEDS, CRGB::Orange);
+  FastLED.show();
+  delay(2000);
+
+  fill_solid(pixels, NUM_LEDS, CRGB::Green);
+  FastLED.show();
+  delay(1000);
+
+  fill_solid(pixels, NUM_LEDS, CRGB::Purple);
+  FastLED.show();
+
   stensTimer->setTimer(GAME_TIMER, GAME_TIME);
   newRound();
   return;
@@ -287,37 +270,26 @@ void newRound()
   uint8_t g = 0;
   for (uint8_t i = 0; i < NUM_GHOSTS; i++)
   {
-    Serial.print("Check ghost  :");
-    Serial.println(i);
     if (GHOSTS[i].isalive)
     {
-      Serial.print("Ghost is alive :");
-      Serial.println(i);
       g++;
     }
   }
-  Serial.print("Found alive :");
-  Serial.println(g);
 
   randomSeed(analogRead(A0));
   uint8_t p = random(0, g);
-  Serial.print("Pick as poltergeist :");
-  Serial.println(p);
 
   for (uint8_t i = 0; i < NUM_GHOSTS; i++)
   {
-
     if (!GHOSTS[i].isalive)
     {
       continue;
     }
-
     if (GHOSTS[i].isalive)
     {
       GHOSTS[i].poltergeist = false;
       pixels[GHOSTS[i].pixel] = CRGB::Green;
     }
-
     if (p == 0)
     {
       GHOSTS[i].poltergeist = true;
@@ -327,7 +299,6 @@ void newRound()
       Serial.print(" button :");
       Serial.println(GHOSTS[i].buttonPin);
     }
-
     p = --p;
   }
 
@@ -369,56 +340,142 @@ void endGame()
   // Stop the GAME_TIMER
   stensTimer->deleteTimer(GAME_TIMER);
 
+  gameRunning = false;
   // turns the pixels off
   for (uint8_t i = 0; i < NUM_GHOSTS; i++)
   {
     pixels[GHOSTS[i].pixel] = CRGB::Black;
   }
   FastLED.show();
-
-  Serial.println("E");
-  //  busters();
+  finalScore();
   return;
 }
 
 // Work out if we hit a Poltergeist or Orb
-void ghostshot(int g)
+void ghostShot(int g)
 {
-  // print the button that triggered the event
-  Serial.print("ghostshot : ");
-  Serial.println(g);
-
-  if (GHOSTS[g].poltergeist)
+  // Is the game in progress
+  if (!gameRunning)
   {
-    Serial.println("Poltergeist");
-    GHOSTS[g].isalive = false;
-    GHOSTS[g].poltergeist = false;
-    uint8_t p = GHOSTS[g].pixel;
-    pixels[p] = CRGB::Black;
-    FastLED.show();
+    // print the button that triggered the event
+    if (GHOSTS[g].poltergeist)
+    {
+      Serial.println("Poltergeist");
+      GHOSTS[g].isalive = false;
+      GHOSTS[g].poltergeist = false;
+      uint8_t p = GHOSTS[g].pixel;
+      pixels[p] = CRGB::Black;
+      FastLED.show();
+      gameScore++;
+    }
+    else
+    {
+      Serial.println("Orb");
+    }
+
+    for (int i = 1000; i > 200; i--)
+    {
+      tone(buzzerPin, i);
+    }
+    noTone(buzzerPin);
+    endRound();
   }
   else
   {
-    Serial.println("Orb");
+    resetGhost(g);
   }
+  return;
+}
 
-  for (int i = 1000; i > 200; i--)
+// Reset the ghost
+void resetGhost(int g)
+{
+  GHOSTS[g].isalive = true;
+  GHOSTS[g].poltergeist = false;
+  uint8_t p = GHOSTS[g].pixel;
+  pixels[p] = CRGB::Purple;
+  FastLED.show();
+
+  for (int i = 200; i > 1500; i++)
   {
     tone(buzzerPin, i);
   }
   noTone(buzzerPin);
 
-  noTone(buzzerPin);
-
-  endRound();
   return;
+}
+
+// Decide if is the game was a winner
+void finalScore()
+{
+
+  int NOTE_SUSTAIN = 250;
+  if (gameScore >= TO_WIN)
+  {
+    fill_solid(pixels, NUM_LEDS, CRGB::Green);
+    FastLED.show();
+    for (uint8_t nLoop = 0; nLoop < 2; nLoop++)
+    {
+      tone(buzzerPin, NOTE_A5);
+      delay(NOTE_SUSTAIN);
+      tone(buzzerPin, NOTE_B5);
+      delay(NOTE_SUSTAIN);
+      tone(buzzerPin, NOTE_C5);
+      delay(NOTE_SUSTAIN);
+      tone(buzzerPin, NOTE_B5);
+      delay(NOTE_SUSTAIN);
+      tone(buzzerPin, NOTE_C5);
+      delay(NOTE_SUSTAIN);
+      tone(buzzerPin, NOTE_D5);
+      delay(NOTE_SUSTAIN);
+      tone(buzzerPin, NOTE_C5);
+      delay(NOTE_SUSTAIN);
+      tone(buzzerPin, NOTE_D5);
+      delay(NOTE_SUSTAIN);
+      tone(buzzerPin, NOTE_E5);
+      delay(NOTE_SUSTAIN);
+      tone(buzzerPin, NOTE_D5);
+      delay(NOTE_SUSTAIN);
+      tone(buzzerPin, NOTE_E5);
+      delay(NOTE_SUSTAIN);
+      tone(buzzerPin, NOTE_E5);
+      delay(NOTE_SUSTAIN);
+    }
+    noTone(buzzerPin);
+
+    busters();
+  }
+  else
+  {
+    fill_solid(pixels, NUM_LEDS, CRGB::Red);
+    FastLED.show();
+    tone(buzzerPin, NOTE_G4);
+    delay(250);
+    tone(buzzerPin, NOTE_C4);
+    delay(500);
+    noTone(buzzerPin);
+    delay(5000);
+  }
 }
 
 void busters()
 {
+
+  bool TickTock;
   // iterate over the notes of the melody:
-  for (int thisNote = 0; thisNote < sizeof(noteDuration)/sizeof(noteDuration[0]); thisNote++)
+  for (int thisNote = 0; thisNote < sizeof(noteDuration) / sizeof(noteDuration[0]); thisNote++)
   {
+
+    TickTock = !TickTock;
+    if (TickTock)
+    {
+      fill_solid(pixels, NUM_LEDS, CRGB::Blue);
+    }
+    else
+    {
+      fill_solid(pixels, NUM_LEDS, CRGB::Red);
+    }
+    FastLED.show();
 
     // to calculate the note duration, take one second divided by the note type.
     //e.g. quarter note = 1000 / 4, eighth note = 1000/8, etc.
@@ -432,4 +489,7 @@ void busters()
     // stop the tone playing:
     noTone(buzzerPin);
   }
+
+  fill_solid(pixels, NUM_LEDS, CRGB::Black);
+  FastLED.show();
 }
