@@ -79,10 +79,10 @@ int buzzerPin = 7;
 
 // notes in the melody:
 int melody[] = {
-    NOTE_B5, NOTE_B4, NOTE_D5, NOTE_DS5, NOTE_F5S, NOTE_A5, 0, NOTE_B4, NOTE_GS5, 0, NOTE_B4,
-    NOTE_B5, NOTE_B4, NOTE_D5, NOTE_DS5, NOTE_F5S, NOTE_A5, 0, NOTE_B4, NOTE_GS5, 0, NOTE_B4,
-    NOTE_B5, NOTE_B4, NOTE_D5, NOTE_DS5, NOTE_F5S, NOTE_A5, 0, NOTE_B4, NOTE_GS5, 0, NOTE_B4,
-    NOTE_B5, NOTE_B4, NOTE_D5, NOTE_DS5, NOTE_F5S, NOTE_A5, 0, NOTE_B4, NOTE_GS5, 0, NOTE_B4, //1st
+    NOTE_B5, NOTE_B4, NOTE_D5, NOTE_DS5, NOTE_FS5, NOTE_A5, 0, NOTE_B4, NOTE_GS5, 0, NOTE_B4,
+    NOTE_B5, NOTE_B4, NOTE_D5, NOTE_DS5, NOTE_FS5, NOTE_A5, 0, NOTE_B4, NOTE_GS5, 0, NOTE_B4,
+    NOTE_B5, NOTE_B4, NOTE_D5, NOTE_DS5, NOTE_FS5, NOTE_A5, 0, NOTE_B4, NOTE_GS5, 0, NOTE_B4,
+    NOTE_B5, NOTE_B4, NOTE_D5, NOTE_DS5, NOTE_FS5, NOTE_A5, 0, NOTE_B4, NOTE_GS5, 0, NOTE_B4, //1st
     NOTE_B4, NOTE_B4, NOTE_DS5, NOTE_B4, NOTE_CS5, NOTE_A4, 0, 0,
     NOTE_B4, NOTE_B4, NOTE_B4, NOTE_B4, NOTE_A4, NOTE_B4, 0,
     NOTE_B4, NOTE_B4, NOTE_DS5, NOTE_B4, NOTE_CS5, NOTE_A4, 0, 0,
@@ -463,7 +463,7 @@ void busters()
 
   bool TickTock;
   // iterate over the notes of the melody:
-  for (int thisNote = 0; thisNote < sizeof(noteDuration) / sizeof(noteDuration[0]); thisNote++)
+  for (int thisNote = 0; thisNote < sizeof(noteDurations) / sizeof(noteDurations[0]); thisNote++)
   {
 
     TickTock = !TickTock;
