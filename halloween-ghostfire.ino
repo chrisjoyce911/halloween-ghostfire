@@ -15,14 +15,14 @@ StensTimer *stensTimer;
 #define GAME_TIMER 2
 
 #define ROUND_TIME 5000
-#define GAME_TIME 60000
-#define LAST_ROUND 20
+#define GAME_TIME 40000
+#define LAST_ROUND 7
 
 #define TO_WIN 5
 
 #include "FastLED.h"
 // Number of RGB LEDs in the strand
-#define NUM_LEDS 45
+#define NUM_LEDS 43
 
 // Define the array of leds
 CRGB pixels[NUM_LEDS];
@@ -55,21 +55,19 @@ struct Ghost
   bool poltergeist;
   // only an alive ghost in left in the game
   bool isalive;
+  // Has been reset
+  bool ready;
 };
 
 Ghost GHOSTS[NUM_GHOSTS] = {
-    {8, 0, false, true},
-    {9, 2, false, true},
-    {10, 4, false, true},
-    {11, 6, false, true},
-    {12, 8, false, true},
+    {9, 0, false, true, true},  // 1 - 12
+    {10, 2, false, true, true}, // 4 - 9
+    {12, 4, false, true, true}, // 0 - 11
+    {11, 6, false, true, true}, // 2 - 8
+    {8, 8, false, true, true},  // 3
 };
 
-AceButton buttons[20];
-
 void buttonEvent(AceButton *, uint8_t, uint8_t);
-#define START_PIN 13
-#define START_BUTTON 15
 
 // the round of the game you are in
 int gameRound;
@@ -105,19 +103,19 @@ int melody[] = {
 
 // note durations: 4 = quarter note, 8 = eighth note, etc.:
 int noteDurations[] = {
-    8, 8, 16, 8, 8, 16, 16, 8, 16, 16, 8,
-    8, 8, 16, 8, 8, 16, 16, 8, 16, 16, 8,
-    8, 8, 16, 8, 8, 16, 16, 8, 16, 16, 8,
-    8, 8, 16, 8, 8, 16, 16, 8, 16, 16, 8, //1st
+    8, 8, 16, 16, 8, 16, 16, 8, 16, 16, 8,
+    8, 8, 16, 16, 8, 16, 16, 8, 16, 16, 8,
+    8, 8, 16, 16, 8, 16, 16, 8, 16, 16, 8,
+    8, 8, 16, 16, 8, 16, 16, 8, 16, 16, 8, //1st
     16, 8, 8, 8, 8, 8, 4,
     16, 16, 16, 16, 8, 8, 2,
     16, 8, 8, 8, 8, 8, 4,
     16, 16, 16, 16, 8, 8, 4, 8, //2nd
-    8, 64, 64, 32, 32, 32, 8, 64, 64, 32, 16, 8, 64, 64, 32, 16, 8, 64, 64, 32, 32, 32,
+    2, 64, 64, 32, 32, 32, 2, 64, 64, 32, 16, 2, 64, 64, 32, 16, 2, 64, 64, 32, 32, 32,
     8, 32, 32, 16, 16, 16, 16, 16,
-    8, 64, 64, 32, 32, 32, 8, 64, 64, 32, 16, 8, 64, 64, 32, 16, 8, 64, 64, 32, 32, 32,
+    2, 64, 64, 32, 32, 32, 2, 64, 64, 32, 16, 2, 64, 64, 32, 16, 2, 64, 64, 32, 32, 32,
     8, 32, 32, 16, 16, 16, 16, 16,
-    8, 64, 64, 32, 32, 32, 8, 64, 64, 32, 16, 8, 64, 64, 32, 16, 8, 64, 64, 32, 32, 32,
+    2, 64, 64, 32, 32, 32, 2, 64, 64, 32, 16, 2, 64, 64, 32, 16, 2, 64, 64, 32, 32, 32,
     8, 32, 32, 16, 16, 16, 16, 16};
 
 void setup()
@@ -147,12 +145,10 @@ void setup()
   /* Tell StensTimer which callback function to use */
   stensTimer->setStaticCallback(timerCallback);
 
-  // Setup start button
-  pinMode(13, INPUT_PULLUP);
-  buttons[5].init(13, HIGH, 5);
-
   pinMode(buzzerPin, OUTPUT);
 
+  Serial.println("Setup");
+  // busters();
   newGame();
 }
 
@@ -167,23 +163,6 @@ void loop()
   {
     buttons[i].check();
   }
-
-  int incomingByte = 0;
-  if (Serial.available() > 0)
-  {
-    // read the incoming byte from serial:
-    incomingByte = Serial.read();
-
-    // say what you got:
-    Serial.print("I received: ");
-    Serial.println(incomingByte, DEC);
-
-    // if (input == "NG")
-    // {
-    //   Serial.print("SG");
-    //   newGame();
-    // }
-  }
 }
 
 // The buttonCallback handler
@@ -193,8 +172,8 @@ void buttonCallback(AceButton *button, uint8_t eventType, uint8_t buttonState)
   // Get the button
   uint8_t id = button->getId();
 
-  Serial.print("Button : ");
-  Serial.println(id);
+  // Serial.print("Got button : ");
+  // Serial.println(id);
 
   switch (eventType)
   {
@@ -241,15 +220,15 @@ void newGame()
 
   fill_solid(pixels, NUM_LEDS, CRGB::Red);
   FastLED.show();
-  delay(3000);
+  delay(1000);
 
   fill_solid(pixels, NUM_LEDS, CRGB::Orange);
   FastLED.show();
-  delay(2000);
+  delay(500);
 
   fill_solid(pixels, NUM_LEDS, CRGB::Green);
   FastLED.show();
-  delay(1000);
+  delay(250);
 
   fill_solid(pixels, NUM_LEDS, CRGB::Purple);
   FastLED.show();
@@ -296,7 +275,7 @@ void newRound()
       pixels[GHOSTS[i].pixel] = CRGB::Red;
       Serial.print("poltergeist :");
       Serial.println(i);
-      Serial.print(" button :");
+      Serial.print(" button pin :");
       Serial.println(GHOSTS[i].buttonPin);
     }
     p = --p;
@@ -311,6 +290,7 @@ void newRound()
 // End the round if ist the last end the game
 void endRound()
 {
+  Serial.println("endRound()");
   // Stop the timmer
   stensTimer->deleteTimer(ROUND_TIMER);
 
@@ -323,6 +303,7 @@ void endRound()
 
   if (gameRound > LAST_ROUND)
   {
+    Serial.println("LAST_ROUND -> endGame()");
     endGame();
   }
   else
@@ -335,6 +316,13 @@ void endRound()
 // End the game
 void endGame()
 {
+  Serial.println("endGame()");
+  if (!gameRunning)
+  {
+    Serial.println("returning");
+    return;
+  }
+  Serial.println("endGame()");
   // Stop the ROUND_TIMER
   stensTimer->deleteTimer(ROUND_TIMER);
   // Stop the GAME_TIMER
@@ -354,14 +342,18 @@ void endGame()
 // Work out if we hit a Poltergeist or Orb
 void ghostShot(int g)
 {
+  // Serial.print("ghostShot(int g) : ");
+  // Serial.println(9);
   // Is the game in progress
-  if (!gameRunning)
+  if (gameRunning)
   {
+    Serial.println("gameRunning");
     // print the button that triggered the event
     if (GHOSTS[g].poltergeist)
     {
       Serial.println("Poltergeist");
       GHOSTS[g].isalive = false;
+      GHOSTS[g].ready = false;
       GHOSTS[g].poltergeist = false;
       uint8_t p = GHOSTS[g].pixel;
       pixels[p] = CRGB::Black;
@@ -371,6 +363,8 @@ void ghostShot(int g)
     else
     {
       Serial.println("Orb");
+      GHOSTS[g].ready = false;
+      GHOSTS[g].isalive = false;
     }
 
     for (int i = 1000; i > 200; i--)
@@ -378,6 +372,7 @@ void ghostShot(int g)
       tone(buzzerPin, i);
     }
     noTone(buzzerPin);
+    Serial.println("ghostShot(int g) ->endRound()");
     endRound();
   }
   else
@@ -390,7 +385,10 @@ void ghostShot(int g)
 // Reset the ghost
 void resetGhost(int g)
 {
+  Serial.print("resetGhost() :");
+  Serial.println(g);
   GHOSTS[g].isalive = true;
+  GHOSTS[g].ready = true;
   GHOSTS[g].poltergeist = false;
   uint8_t p = GHOSTS[g].pixel;
   pixels[p] = CRGB::Purple;
@@ -402,18 +400,33 @@ void resetGhost(int g)
   }
   noTone(buzzerPin);
 
+  // are they all ready
+  uint8_t r = 0;
+  for (uint8_t i = 0; i < NUM_GHOSTS; i++)
+  {
+    if (GHOSTS[i].ready)
+    {
+      r++;
+    }
+  }
+
+  if (r == NUM_GHOSTS)
+  {
+    newGame();
+  }
+
   return;
 }
 
 // Decide if is the game was a winner
 void finalScore()
 {
-
+  Serial.println("finalScore()");
   int NOTE_SUSTAIN = 250;
   if (gameScore >= TO_WIN)
   {
-    fill_solid(pixels, NUM_LEDS, CRGB::Green);
-    FastLED.show();
+    //  fill_solid(pixels, NUM_LEDS, CRGB::Green);
+    // FastLED.show();
     for (uint8_t nLoop = 0; nLoop < 2; nLoop++)
     {
       tone(buzzerPin, NOTE_A5);
@@ -443,12 +456,12 @@ void finalScore()
     }
     noTone(buzzerPin);
 
-    busters();
+    //  busters();
   }
   else
   {
-    fill_solid(pixels, NUM_LEDS, CRGB::Red);
-    FastLED.show();
+    //  fill_solid(pixels, NUM_LEDS, CRGB::Red);
+    // FastLED.show();
     tone(buzzerPin, NOTE_G4);
     delay(250);
     tone(buzzerPin, NOTE_C4);
@@ -463,23 +476,23 @@ void busters()
 
   bool TickTock;
   // iterate over the notes of the melody:
-  for (int thisNote = 0; thisNote < sizeof(noteDurations) / sizeof(noteDurations[0]); thisNote++)
+  // for (int thisNote = 0; thisNote < sizeof(noteDurations) / sizeof(noteDurations[0]); thisNote++)
+  for (int thisNote = 0; thisNote < 162; thisNote++)
   {
-
     TickTock = !TickTock;
     if (TickTock)
     {
-      fill_solid(pixels, NUM_LEDS, CRGB::Blue);
+      //   fill_solid(pixels, NUM_LEDS, CRGB::Blue);
     }
     else
     {
-      fill_solid(pixels, NUM_LEDS, CRGB::Red);
+      //   fill_solid(pixels, NUM_LEDS, CRGB::Red);
     }
     FastLED.show();
 
     // to calculate the note duration, take one second divided by the note type.
     //e.g. quarter note = 1000 / 4, eighth note = 1000/8, etc.
-    int noteDuration = 1500 / noteDurations[thisNote];
+    int noteDuration = 2000 / noteDurations[thisNote];
     tone(buzzerPin, melody[thisNote], noteDuration);
 
     // to distinguish the notes, set a minimum time between them.
@@ -492,4 +505,6 @@ void busters()
 
   fill_solid(pixels, NUM_LEDS, CRGB::Black);
   FastLED.show();
+  noTone(buzzerPin);
+  return;
 }
