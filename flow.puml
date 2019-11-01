@@ -1,16 +1,10 @@
 @startuml ghostfire
 
-
-
 start
 
 if (callback type) then (no)
   #Orange:timer;
-  if (ROUND_TIMER) then (yes)
-    #Orange:endRound();
-  else (no)
-    #Orange:endGame();
-  endif
+  #Orange:endRound();
   else (yes)
   #Orange:button;
   if (ghost button) then (yes)
@@ -29,7 +23,6 @@ if (newGame()) then (yes)
   :set gameRunning true;
   :set gameScore 0;
   :new game pixles;
-  #Green:GAME_TIMER;
   #Orange:newRound();
 
 elseif (newRound()) then (yes)
@@ -74,7 +67,6 @@ elseif (endRound()) then (yes)
 
 elseif (endGame()) then (yes)
   #Red:ROUND_TIMER;
-  #Red:GAME_TIMER;
   :set gameRunning false;
   :End Game colour;
 

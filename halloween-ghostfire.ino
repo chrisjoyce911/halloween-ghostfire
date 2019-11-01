@@ -12,10 +12,7 @@ StensTimer *stensTimer;
 
 /* define some custom Action codes */
 #define ROUND_TIMER 1
-#define GAME_TIMER 2
-
 #define ROUND_TIME 5000
-#define GAME_TIME 40000
 #define LAST_ROUND 7
 
 #define TO_WIN 5
@@ -66,6 +63,8 @@ Ghost GHOSTS[NUM_GHOSTS] = {
     {11, 6, false, true, true}, // 2 - 8
     {8, 8, false, true, true},  // 3
 };
+
+AceButton buttons[NUM_GHOSTS];
 
 void buttonEvent(AceButton *, uint8_t, uint8_t);
 
@@ -175,21 +174,9 @@ void buttonCallback(AceButton *button, uint8_t eventType, uint8_t buttonState)
   // Serial.print("Got button : ");
   // Serial.println(id);
 
-  switch (eventType)
-  {
-  case AceButton::kEventReleased:
-    if (id == START_BUTTON)
-    {
-      Serial.println("New Gane");
+  //case AceButton::kEventReleased:
 
-      newGame();
-    }
-    else
-    {
-      ghostShot(id);
-    }
-    break;
-  }
+  ghostShot(id);
 }
 
 // this function will be called whenever a timer is due
@@ -199,10 +186,6 @@ void timerCallback(Timer *timer)
   if (ROUND_TIMER == timer->getAction())
   {
     endRound();
-  }
-  if (GAME_TIMER == timer->getAction())
-  {
-    endGame();
   }
 }
 
@@ -233,7 +216,6 @@ void newGame()
   fill_solid(pixels, NUM_LEDS, CRGB::Purple);
   FastLED.show();
 
-  stensTimer->setTimer(GAME_TIMER, GAME_TIME);
   newRound();
   return;
 }
@@ -325,8 +307,6 @@ void endGame()
   Serial.println("endGame()");
   // Stop the ROUND_TIMER
   stensTimer->deleteTimer(ROUND_TIMER);
-  // Stop the GAME_TIMER
-  stensTimer->deleteTimer(GAME_TIMER);
 
   gameRunning = false;
   // turns the pixels off
