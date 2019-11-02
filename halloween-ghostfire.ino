@@ -12,8 +12,8 @@ StensTimer *stensTimer;
 
 /* define some custom Action codes */
 #define ROUND_TIMER 1
-#define ROUND_TIME 5000
-#define LAST_ROUND 7
+#define ROUND_TIME 7000
+#define LAST_ROUND 8
 
 #define TO_WIN 5
 
